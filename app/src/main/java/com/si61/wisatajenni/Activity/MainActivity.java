@@ -8,13 +8,22 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.si61.wisatajenni.API.APIRequestData;
+import com.si61.wisatajenni.API.RetroServer;
+import com.si61.wisatajenni.Adapter.AdapterWisata;
+import com.si61.wisatajenni.Model.ModelResponse;
 import com.si61.wisatajenni.Model.ModelWisata;
 import com.si61.wisatajenni.R;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     //ini code pertama di java activity selain yg ada komennya
@@ -48,8 +57,34 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     //ini dibuat setelah buat code adapter class
     public void retrieveWisata(){//method retrieve data dari API
+        pbWisata.setVisibility(View.VISIBLE);
+
+        APIRequestData API = RetroServer.kenokRetrofit().create(APIRequestData.class);
+        Call<ModelResponse> proses = API.ardRetrieve();
+
+        proses.enqueue(new Callback<ModelResponse>() {
+            @Override
+            public void onResponse(Call<ModelResponse> call, Response<ModelResponse> response) {
+                String kode = response.body().getKode();
+                String pesan = response.body().getPesan();
+                listWisata = response.body().getData();
+
+                adWisata = new AdapterWisata(MainActivity.this, listWisata);
+                rvWisata.setAdapter(adWisata);
+                adWisata.notifyDataSetChanged();
+
+                pbWisata.setVisibility(View.GONE);
+
+            }
+
+            @Override
+            public void onFailure(Call<ModelResponse> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Error: Gagal Menghubungi Server!", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
